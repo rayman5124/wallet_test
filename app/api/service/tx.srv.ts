@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Erc20, Erc20__factory } from "../../../contracts/typechain";
+import { Erc20, Erc20__factory, Flux, Flux__factory } from "../../../contracts/typechain";
 import { WalletSrv } from "./wallet.srv";
 import { Router, Request, Response, NextFunction } from "express";
 import keccak256 from "keccak256";
@@ -9,6 +9,7 @@ export class TxSrv {
   private readonly ierc20: ethers.utils.Interface;
   private readonly sop: Erc20;
   private readonly inKsta: Erc20;
+  private readonly flux: Flux;
 
   constructor(
     private readonly provider: ethers.providers.JsonRpcProvider,
@@ -20,12 +21,14 @@ export class TxSrv {
     this.ierc20 = new ethers.utils.Interface(Erc20__factory.abi);
     this.sop = Erc20__factory.connect(sopAddr, provider);
     this.inKsta = Erc20__factory.connect(inKstaAddr, provider);
+    this.flux = Flux__factory.connect(fluxAddr, provider);
   }
 
   public route(router: Router) {
     // 비동기 handler 의 에러 처리를 위해
 
     router.post("/coin/transfer", (req, res, next) => {
+      console.log("===== /coin/transfer =====");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -41,10 +44,16 @@ export class TxSrv {
         schema: { $ref: '#/definitions/ErrRes'}
       } 
       */
-      this.transferCoin.bind(this)(req, res, next).catch(next);
+      this.transferCoin
+        .bind(this)(req, res, next)
+        .catch(next)
+        .then(() => {
+          console.log("=".repeat(50) + "\n");
+        });
     });
 
     router.post("/sop/transfer", (req, res, next) => {
+      console.log("===== /sop/transfer =====");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -60,10 +69,16 @@ export class TxSrv {
         schema: { $ref: '#/definitions/ErrRes'}
       } 
       */
-      this.transferSop.bind(this)(req, res, next).catch(next);
+      this.transferSop
+        .bind(this)(req, res, next)
+        .catch(next)
+        .then(() => {
+          console.log("=".repeat(50) + "\n");
+        });
     });
 
     router.post("/flux/delegate", (req, res, next) => {
+      console.log("===== /flux/delegate =====");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -79,10 +94,16 @@ export class TxSrv {
         schema: { $ref: '#/definitions/ErrRes'}
       } 
       */
-      this.delegate.bind(this)(req, res, next).catch(next);
+      this.delegate
+        .bind(this)(req, res, next)
+        .catch(next)
+        .then(() => {
+          console.log("=".repeat(50) + "\n");
+        });
     });
 
     router.post("/flux/undelegate", (req, res, next) => {
+      console.log("===== /flux/undelegate =====");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -98,7 +119,12 @@ export class TxSrv {
         schema: { $ref: '#/definitions/ErrRes'}
       } 
       */
-      this.undelegate.bind(this)(req, res, next).catch(next);
+      this.undelegate
+        .bind(this)(req, res, next)
+        .catch(next)
+        .then(() => {
+          console.log("=".repeat(50) + "\n");
+        });
     });
   }
 
@@ -119,18 +145,18 @@ export class TxSrv {
 
     console.log("<send signed tx to gnd_chain>\n");
     const beforeBal = {
-      sender: await this.provider.getBalance(userAddr),
-      receiver: await this.provider.getBalance(to),
+      sender: ethers.utils.formatEther(await this.provider.getBalance(userAddr)),
+      receiver: ethers.utils.formatEther(await this.provider.getBalance(to)),
     };
     const txRes = await this.provider.sendTransaction(signedSerializedTx);
     const receipt = await txRes.wait();
     const afterBal = {
-      sender: await this.provider.getBalance(userAddr),
-      receiver: await this.provider.getBalance(to),
+      sender: ethers.utils.formatEther(await this.provider.getBalance(userAddr)),
+      receiver: ethers.utils.formatEther(await this.provider.getBalance(to)),
     };
     if (receipt.status && receipt.status >= 1) {
       console.log(
-        `<tx succeed\n${prettyJSON({
+        `<tx succeed>\n${prettyJSON({
           beforeBal,
           afterBal,
         })}`
@@ -162,18 +188,18 @@ export class TxSrv {
 
     console.log("<send signed tx to gnd_chain>\n");
     const beforeBal = {
-      sender: await this.sop.balanceOf(userAddr),
-      receiver: await this.sop.balanceOf(to),
+      sender: ethers.utils.formatEther(await this.sop.balanceOf(userAddr)),
+      receiver: ethers.utils.formatEther(await this.sop.balanceOf(to)),
     };
     const txRes = await this.provider.sendTransaction(signedSerializedTx);
     const receipt = await txRes.wait();
     const afterBal = {
-      sender: await this.sop.balanceOf(userAddr),
-      receiver: await this.sop.balanceOf(to),
+      sender: ethers.utils.formatEther(await this.sop.balanceOf(userAddr)),
+      receiver: ethers.utils.formatEther(await this.sop.balanceOf(to)),
     };
     if (receipt.status && receipt.status >= 1) {
       console.log(
-        `<tx succeed\n${prettyJSON({
+        `<tx succeed>\n${prettyJSON({
           beforeBal,
           afterBal,
         })}`
@@ -212,15 +238,24 @@ export class TxSrv {
       serializedTxn: unsignedSerializedTx,
     });
 
+    console.log("<send signed tx to gnd_chain>\n");
     const tx = await this.provider.sendTransaction(signedSerializedTx);
     const receipt = await tx.wait();
+    const userInfo = await this.flux.getUserInfo(soID, userAddr);
     if (receipt.status && receipt.status >= 1) {
+      console.log(
+        `<tx succeed>\n${prettyJSON({
+          delegate: userInfo.delegate.toString(),
+          delegateAt: userInfo.delegateAt.toString(),
+          clearingAt: userInfo.clearingAt.toString(),
+        })}\n`
+      );
       res.status(200).json({
         message: "success",
         txHash: receipt.transactionHash,
       });
     } else {
-      next(new Error(`tx failed: ${receipt.transactionHash}`));
+      next(new Error(`<tx failed>\n ${receipt.transactionHash}\n`));
     }
   }
 
@@ -247,15 +282,24 @@ export class TxSrv {
       serializedTxn: unsignedSerializedTx,
     });
 
+    console.log("<send signed tx to gnd_chain>\n");
     const tx = await this.provider.sendTransaction(signedSerializedTx);
     const receipt = await tx.wait();
+    const userInfo = await this.flux.getUserInfo(soID, userAddr);
     if (receipt.status && receipt.status >= 1) {
+      console.log(
+        `<tx succeed>\n${prettyJSON({
+          delegate: userInfo.delegate.toString(),
+          delegateAt: userInfo.delegateAt.toString(),
+          clearingAt: userInfo.clearingAt.toString(),
+        })}\n`
+      );
       res.status(200).json({
         message: "success",
         txHash: receipt.transactionHash,
       });
     } else {
-      next(new Error(`tx failed: ${receipt.transactionHash}`));
+      next(new Error(`<tx failed>\n ${receipt.transactionHash}\n`));
     }
   }
 
@@ -279,7 +323,7 @@ export class TxSrv {
     if (receipt.status && receipt.status >= 1) {
       return receipt.transactionHash;
     } else {
-      throw new Error(`approve tx failed: ${receipt.transactionHash}`);
+      throw new Error(`approve tx failed: ${receipt.transactionHash}\n`);
     }
   }
 

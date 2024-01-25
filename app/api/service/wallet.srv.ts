@@ -27,9 +27,10 @@ export class WalletSrv {
       })}\n`
     );
 
-    const path = `/signTxn/gnd/${signReq.keyID}/${signReq.serializedTxn}`;
-    // const path = `/signTxn/gnd/${signReq.keyID}/${this._removeIfPrefixed(signReq.serializedTxn)}`;
     const method: RestMethod = "POST";
+    // const path = "/api/sign/txn";
+    // const res = await this._fetch(path, method, signReq);
+    const path = `/signTxn/gnd/${signReq.keyID}/${signReq.serializedTxn}`;
     const res = await this._fetch(path, method);
 
     console.log(
