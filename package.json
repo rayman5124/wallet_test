@@ -1,0 +1,35 @@
+{
+  "name": "node_ver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "local": "ts-node main.ts",
+    "typechain": "typechain --target ethers-v5 --out-dir ./contracts/typechain './contracts/abi/*.json'",
+    "swagger": "node ./swagger/swagger.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@typechain/ethers-v5": "^11.1.2",
+    "cors": "^2.8.5",
+    "ethers": "^5.7.0",
+    "express": "^4.18.2",
+    "keccak256": "^1.0.6",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.3.2",
+    "swagger-ui-express": "^5.0.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node-fetch": "^2.6.11",
+    "@types/swagger-ui-express": "^4.1.6",
+    "swagger-autogen": "^2.23.7",
+    "typechain": "^8.3.2"
+  }
+}

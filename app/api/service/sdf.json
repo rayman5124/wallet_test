@@ -1,0 +1,6 @@
+{
+  "error": "hex decode string failed: encoding/hex: invalid byte: U+0078 'x'",
+  "result": {
+    "signedTxn": ""
+  }
+}
