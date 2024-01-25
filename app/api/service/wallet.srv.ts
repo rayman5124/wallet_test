@@ -38,7 +38,8 @@ export class WalletSrv {
         res,
       })}\n`
     );
-    return res.signedTxn;
+    // return res.signedTxn;
+    return res.result.signedTxn;
   }
 
   private async _fetch(path: string, method: RestMethod, body?: object) {
