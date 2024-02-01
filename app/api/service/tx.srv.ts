@@ -28,7 +28,7 @@ export class TxSrv {
     // 비동기 handler 의 에러 처리를 위해
 
     router.post("/coin/transfer", (req, res, next) => {
-      console.log("===== /coin/transfer =====");
+      console.log("========== /coin/transfer ==========");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -53,7 +53,7 @@ export class TxSrv {
     });
 
     router.post("/sop/transfer", (req, res, next) => {
-      console.log("===== /sop/transfer =====");
+      console.log("========== /sop/transfer ==========");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -78,7 +78,7 @@ export class TxSrv {
     });
 
     router.post("/flux/delegate", (req, res, next) => {
-      console.log("===== /flux/delegate =====");
+      console.log("========== /flux/delegate ==========");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -103,7 +103,7 @@ export class TxSrv {
     });
 
     router.post("/flux/undelegate", (req, res, next) => {
-      console.log("===== /flux/undelegate =====");
+      console.log("========== /flux/undelegate ==========");
       /*
       #swagger.parameters['body'] = {
         in: 'body',
@@ -172,7 +172,6 @@ export class TxSrv {
 
   public async transferSop(req: Request, res: Response, next: NextFunction) {
     const { keyID, userAddr, to, amount }: { [key: string]: string } = req.body;
-
     const weiAmount = ethers.utils.parseEther(amount);
     const calldata = this.ierc20.encodeFunctionData("transfer", [to, weiAmount]);
 
@@ -215,7 +214,6 @@ export class TxSrv {
 
   public async delegate(req: Request, res: Response, next: NextFunction) {
     const { keyID, userAddr, soID, amount }: { [key: string]: string } = req.body;
-
     const weiAmount = BigInt(amount) * BigInt(10 ** 18);
     const allowance = await this.sop.allowance(userAddr, this.fluxAddr);
     if (allowance.lt(weiAmount)) {
@@ -343,11 +341,8 @@ export class TxSrv {
         value,
       }),
     ];
-    const [nonce, gasPrice, gasLimit] = (await Promise.all(promises)) as [
-      number,
-      ethers.BigNumber,
-      ethers.BigNumber
-    ];
+    const [nonce, gasPrice, gasLimit] = await Promise.all(promises);
+    if (typeof nonce !== "number") throw new Error("invalid nonce");
 
     return ethers.utils.serializeTransaction({
       to,

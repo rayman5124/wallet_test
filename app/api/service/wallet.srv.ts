@@ -27,9 +27,7 @@ export class WalletSrv {
       })}\n`
     );
 
-    const method: RestMethod = "POST";
-    // const path = "/api/sign/txn";
-    // const res = await this._fetch(path, method, signReq);
+    const method: RestMethod = "GET";
     const path = `/signTxn/gnd/${signReq.keyID}/${signReq.serializedTxn}`;
     const res = await this._fetch(path, method);
 
@@ -38,7 +36,6 @@ export class WalletSrv {
         res,
       })}\n`
     );
-    // return res.signedTxn;
     return res.result.signedTxn;
   }
 
@@ -52,16 +49,28 @@ export class WalletSrv {
       timeout: 5000,
     });
 
-    const resJson = await res.json();
+    // console.log(res);
     if (Math.floor(res.status / 100) == 2) {
+      const resJson = await res.json();
       return resJson;
-    } else {
+    } else if (Math.floor(res.status / 100) == 4) {
+      const resJson = await res.json();
       throw new Error(
         "<wallet request failed> \n" +
           prettyJSON({
             status: res.status,
             path: this.basePath + path,
             res: resJson,
+          }) +
+          "\n"
+      );
+    } else {
+      throw new Error(
+        "<wallet request failed> \n" +
+          prettyJSON({
+            status: res.status,
+            path: this.basePath + path,
+            resMsg: res.statusText,
           }) +
           "\n"
       );

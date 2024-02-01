@@ -3,7 +3,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerFile from "../../docs/swagger.json";
 import cors from "cors";
 import { handleError } from "./errHandler";
-import { logger, morganMiddleWare } from "../common/logger";
+import { logger } from "../common/logger";
 
 export class Server {
   readonly app: Express;
@@ -13,7 +13,7 @@ export class Server {
     this.app.use(cors({ origin: "*" }));
     this.app.use(express.json());
     this.app.use("/swagger-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
-    this.app.use(morganMiddleWare);
+    // this.app.use(morganMiddleWare);
   }
 
   public groupRoute(pathPrefix: string): Router {
